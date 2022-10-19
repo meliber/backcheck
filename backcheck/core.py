@@ -3,6 +3,7 @@ from pathlib import Path
 from rich import print as rprint
 
 import subprocess
+import argparse
 
 class Directory():
     "represent a directory."
@@ -55,16 +56,32 @@ class Result():
         if self.matches:
             self.has_backup = True
 
+    def remove(self):
+        """remove a file which likely has backup files."""
+        import os
+        if self.has_backup and self.file.exists():
+            try:
+                os.remove(self.file)
+                if not self.file.exists():
+                    print(self.file.resolve(), 'has been deleted')
+            except:
+                raise('remove file failed')
+
 def check(directory):
     files = Directory(directory).files
+    has_backup = []
+    has_no_backup = []
     for f in files:
         c = Result(f)
         rprint(c.file)
         if c.has_backup:
+            has_backup.append(c)
             rprint("[italic green]found backup files")
             print("likely backup list:")
             for i in c.matches:
                 rprint("[italic blue]{}".format(i))
         else:
+            has_no_backup.append(c)
             rprint("[italic red]found no backup files")
         print('------------')
+    return files, has_backup, has_no_backup
