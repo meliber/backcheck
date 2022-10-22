@@ -3,7 +3,6 @@ from pathlib import Path
 from rich import print as rprint
 
 import subprocess
-import argparse
 
 class Directory():
     "represent a directory."
@@ -79,7 +78,7 @@ def check(directory):
             rprint("[italic green]found backup files")
             print("likely backup list:")
             for i in c.matches:
-                rprint("[italic blue]{}".format(i))
+                rprint(f"[italic blue]{i}")
         else:
             has_no_backup.append(c)
             rprint("[italic red]found no backup files")
