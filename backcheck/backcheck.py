@@ -24,4 +24,4 @@ if __name__ == '__main__':
         rprint("[red bold]files has backup will be deleted 5 seconds later, press 'Ctrl + C' to stop")
         time.sleep(5)
         for i in has_backup:
-            c.remove()
+            i.remove()
