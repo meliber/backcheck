@@ -9,14 +9,15 @@ import time
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('path', help='the path for check')
+    parser.add_argument('back_dir', help='backup dir for check against')
     parser.add_argument('--rm', action='store_true', help='remove file which has backup')
     args = parser.parse_args()
-    files, has_backup, has_no_backup = check(args.path)
+    files, has_backup, has_no_backup = check(args.path, args.back_dir)
     n_files = len(files)
     n_has_backup = len(has_backup)
     n_has_no_backup = len(has_no_backup)
     if n_has_backup + n_has_no_backup != n_files:
-        raise('some files has not been processd')
+        raise Exception('some files has not been processd')
     print(f'number of files: {n_files}')
     print(f'number of files has backup: {n_has_backup}')
     print(f'number of files has no backup: {n_has_no_backup}')

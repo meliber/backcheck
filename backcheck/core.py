@@ -58,6 +58,7 @@ class Result():
         self.has_backup = False
         self.result_objs = []
         self.matches = []
+        self.replicas = []
         self.hash_compare = hash_compare
         self._check()
 
@@ -65,24 +66,33 @@ class Result():
         """check if a file (likely) has a backup.
         file should be a Path object."""
 
-        result = subprocess.run(['plocate', self.file.stem,], stdout=subprocess.PIPE)
+        result = subprocess.run(['plocate', self.back_dir, self.file.stem,], stdout=subprocess.PIPE)
         result = result.stdout.decode('utf-8').split('\n')
         result = [i.strip() for i in result if i]
         if result:
             for i in result:
                 if i:
                     self.result_objs.append(Path(i))
-            self.result_objs = [ i for i in self.result_objs if i.resolve() != self.file.resolve()]
+            #self.result_objs = [ i for i in self.result_objs if i.resolve() != self.file.resolve()]
             for i in self.result_objs:
                 if i.exists() and i.suffix == self.file.suffix:
                     self.matches.append(i)
         if self.matches:
+            for i in self.matches:
+                o_hash = hash_file(self.file)
+                b_hash = hash_file(i)
+                #if hash_file(self.file) == hash_file(i):
+                if o_hash == b_hash:
+                    print('original hash:', o_hash)
+                    print('backup hash:', b_hash)
+                    self.replicas.append(i)
+        if self.replicas:
             self.has_backup = True
 
     def remove(self):
         """remove a file which likely has backup files."""
         import os
-        if self.has_backup and self.file.exists():
+        if self.has_backup:
             try:
                 os.remove(self.file)
                 if not self.file.exists():
@@ -90,12 +100,12 @@ class Result():
             except:
                 raise Exception('remove file failed')
 
-def check(directory):
+def check(directory, back_dir):
     files = Directory(directory).files
     has_backup = []
     has_no_backup = []
     for f in files:
-        c = Result(f)
+        c = Result(f, back_dir)
         rprint(c.file)
         if c.has_backup:
             has_backup.append(c)
