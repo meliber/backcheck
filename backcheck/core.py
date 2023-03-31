@@ -4,6 +4,25 @@ from rich import print as rprint
 
 import subprocess
 
+def hash_file(file, hash_al='sha1'):
+    """return hash of given file"""
+    import hashlib
+    hash_als = {'sha1': hashlib.sha1(),
+                'sha256': hashlib.sha256(),
+                'sha512': hashlib.sha512()
+                }
+    try:
+        select_hash = hash_als[hash_al]
+    except:
+        raise Exception('unsupported hash algorithm')
+    with open(file, 'rb') as f:
+        while True:
+            chunk = f.read(2048)
+            if not chunk:
+                break
+            select_hash.update(chunk)
+    return hash_al, select_hash.hexdigest()
+
 class Directory():
     "represent a directory."
 
@@ -12,7 +31,7 @@ class Directory():
             p = Path(path)
             self.path = p
         except:
-            raise('invalid path')
+            raise Exception('invalid path')
 
     @property
     def files(self):
@@ -25,16 +44,21 @@ class Directory():
 class Result():
     """result of backup check"""
 
-    def __init__(self, file):
+    def __init__(self, file, back_dir, hash_compare=True):
         try:
             stem = file.stem
             suffix = file.suffix
         except:
-            raise("get file name or suffix failed")
+            raise Exception("get file name or suffix failed")
         self.file = file
+        try:
+            self.back_dir = Path(back_dir).expanduser().resolve()
+        except:
+            raise Exception('failed to parse backup directory')
         self.has_backup = False
         self.result_objs = []
         self.matches = []
+        self.hash_compare = hash_compare
         self._check()
 
     def _check(self):
@@ -64,7 +88,7 @@ class Result():
                 if not self.file.exists():
                     print(self.file.resolve(), 'has been deleted')
             except:
-                raise('remove file failed')
+                raise Exception('remove file failed')
 
 def check(directory):
     files = Directory(directory).files
