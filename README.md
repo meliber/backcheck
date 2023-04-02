@@ -1,0 +1,1 @@
+A command line tool for checking whether files in a directory have backups reside in a backup directory.
