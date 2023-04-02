@@ -1,3 +1,5 @@
+
+
 from core import Directory
 from core import Result
 from core import check
@@ -8,11 +10,11 @@ import time
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('path', help='the path for check')
-    parser.add_argument('back_dir', help='backup dir for check against')
-    parser.add_argument('--rm', action='store_true', help='remove file which has backup')
+    parser.add_argument('check_dir', help='the directory for check')
+    parser.add_argument('back_dir', help='backup directory for check against, where backups reside')
+    parser.add_argument('--rm', action='store_true', help='remove files in check_dir which have backup')
     args = parser.parse_args()
-    files, has_backup, has_no_backup = check(args.path, args.back_dir)
+    files, has_backup, has_no_backup = check(args.check_dir, args.back_dir)
     n_files = len(files)
     n_has_backup = len(has_backup)
     n_has_no_backup = len(has_no_backup)
