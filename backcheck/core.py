@@ -1,6 +1,7 @@
 
 from pathlib import Path
 from rich import print as rprint
+from functools import partial
 
 import subprocess
 
@@ -44,7 +45,7 @@ class Directory():
 class Result():
     """result of backup check"""
 
-    def __init__(self, file, back_dir, hash_compare=True):
+    def __init__(self, file, back_dir, hash_compare=True, hash_al=None):
         try:
             stem = file.stem
             suffix = file.suffix
@@ -60,6 +61,12 @@ class Result():
         self.matches = []
         self.replicas = []
         self.hash_compare = hash_compare
+        if hash_al:
+            self.hash_al = hash_al
+            self.hash_file = partial(hash_file, hash_al=self.hash_al)
+        else:
+            self.hash_al = 'sha1'
+            self.hash_file = hash_file
         self._check()
 
     def _check(self):
@@ -79,12 +86,11 @@ class Result():
                     self.matches.append(i)
         if self.matches:
             for i in self.matches:
-                o_hash = hash_file(self.file)
-                b_hash = hash_file(i)
-                #if hash_file(self.file) == hash_file(i):
+                o_hash = self.hash_file(self.file)
+                b_hash = self.hash_file(i)
                 if o_hash == b_hash:
-                    print('original hash:', o_hash)
-                    print('backup hash:', b_hash)
+                    print(f'Original {self.hash_al} hash:', o_hash)
+                    print(f'Backup {self.hash_al} hash:', b_hash)
                     self.replicas.append(i)
         if self.replicas:
             self.has_backup = True
@@ -100,12 +106,12 @@ class Result():
             except:
                 raise Exception('remove file failed')
 
-def check(directory, back_dir):
+def check(directory, back_dir, hash=None):
     files = Directory(directory).files
     has_backup = []
     has_no_backup = []
     for f in files:
-        c = Result(f, back_dir)
+        c = Result(f, back_dir, hash_al=hash)
         rprint(c.file)
         if c.has_backup:
             has_backup.append(c)

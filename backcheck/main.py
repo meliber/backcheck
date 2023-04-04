@@ -1,15 +1,13 @@
-#!/bin/env python3
-
-from backcheck.core import Directory
-from backcheck.core import Result
-from backcheck.core import check
+from .core import Directory
+from .core import Result
+from .core import check
 from rich import print as rprint
 
 import argparse
 import time
 
-def backcheck(check_dir, back_dir, rm=False):
-    files, has_backup, has_no_backup = check(check_dir, back_dir)
+def backcheck(check_dir, back_dir, rm=False, hash=None):
+    files, has_backup, has_no_backup = check(check_dir, back_dir, hash=hash)
     n_files = len(files)
     n_has_backup = len(has_backup)
     n_has_no_backup = len(has_no_backup)
@@ -26,8 +24,9 @@ def backcheck(check_dir, back_dir, rm=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('check_dir', help='the directory for check')
-    parser.add_argument('back_dir', help='backup directory for check against, where backups reside')
-    parser.add_argument('--rm', action='store_true', help='remove files in check_dir which have backup')
+    parser.add_argument('check_dir', help='the directory for check.')
+    parser.add_argument('back_dir', help='backup directory for check against, where backups reside.')
+    parser.add_argument('--rm', action='store_true', help='remove files in check_dir which have backup.')
+    parser.add_argument('--hash', help='choose hash algorithm for files check, default algorithm is "sha1", "sha1, sha256, sha512" available.')
     args = parser.parse_args()
-    backcheck(args.check_dir, args.back_dir, args.rm)
+    backcheck(args.check_dir, args.back_dir, args.rm, hash=args.hash)
