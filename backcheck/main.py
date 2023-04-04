@@ -30,5 +30,4 @@ if __name__ == '__main__':
     parser.add_argument('back_dir', help='backup directory for check against, where backups reside')
     parser.add_argument('--rm', action='store_true', help='remove files in check_dir which have backup')
     args = parser.parse_args()
-    #files, has_backup, has_no_backup = check(args.check_dir, args.back_dir)
     backcheck(args.check_dir, args.back_dir, args.rm)
