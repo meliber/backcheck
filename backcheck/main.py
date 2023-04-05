@@ -1,6 +1,6 @@
-from .core import Directory
-from .core import Result
-from .core import check
+from backcheck.core import Directory
+from backcheck.core import Result
+from backcheck.core import check
 from rich import print as rprint
 
 import argparse
