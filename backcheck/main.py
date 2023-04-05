@@ -7,20 +7,26 @@ import argparse
 import time
 
 def backcheck(check_dir, back_dir, rm=False, hash=None):
-    files, has_backup, has_no_backup = check(check_dir, back_dir, hash=hash)
+    files, has_backup, has_name_matches, has_backup_and_name_matches, has_no_backup = check(check_dir, back_dir, hash=hash)
     n_files = len(files)
     n_has_backup = len(has_backup)
+    n_has_name_matches = len(has_name_matches)
+    n_has_backup_and_name_matches = len(has_backup_and_name_matches)
     n_has_no_backup = len(has_no_backup)
-    if n_has_backup + n_has_no_backup != n_files:
+    if (n_has_backup + n_has_name_matches + n_has_no_backup - n_has_backup_and_name_matches) != n_files:
         raise Exception('some files has not been processd')
-    print(f'number of files: {n_files}')
-    print(f'number of files has backup: {n_has_backup}')
-    print(f'number of files has no backup: {n_has_no_backup}')
+    print(f'Number of files: {n_files}')
+    print(f'Number of files has backup: {n_has_backup}')
+    print(f'Number of files has name-matches: {n_has_name_matches}')
+    print(f'Number of files has no backup: {n_has_no_backup}')
     if rm:
-        rprint("[red bold]files has backup will be deleted 5 seconds later, press 'Ctrl + C' to stop")
+        rprint("[red bold]Files have backup will be deleted 5 seconds later, press 'Ctrl + C' to stop")
         time.sleep(5)
+        deleted = 0
         for i in has_backup:
             i.remove()
+            deleted += 1
+        rprint(f'[red bold]{deleted} files have been deleted.')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

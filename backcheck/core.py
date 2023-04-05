@@ -57,9 +57,11 @@ class Result():
         except:
             raise Exception('failed to parse backup directory')
         self.has_backup = False
+        self.has_name_matches = False
         self.result_objs = []
         self.matches = []
         self.replicas = []
+        self.name_matches = []
         self.hash_compare = hash_compare
         if hash_al:
             self.hash_al = hash_al
@@ -67,6 +69,8 @@ class Result():
         else:
             self.hash_al = 'sha1'
             self.hash_file = hash_file
+        self.o_hash = self.hash_file(self.file)
+        self.b_hash = []
         self._check()
 
     def _check(self):
@@ -80,23 +84,23 @@ class Result():
             for i in result:
                 if i:
                     self.result_objs.append(Path(i))
-            #self.result_objs = [ i for i in self.result_objs if i.resolve() != self.file.resolve()]
             for i in self.result_objs:
                 if i.exists() and i.suffix == self.file.suffix:
                     self.matches.append(i)
         if self.matches:
             for i in self.matches:
-                o_hash = self.hash_file(self.file)
                 b_hash = self.hash_file(i)
-                if o_hash == b_hash:
-                    print(f'Original {self.hash_al} hash:', o_hash)
-                    print(f'Backup {self.hash_al} hash:', b_hash)
-                    self.replicas.append(i)
+                if self.o_hash == b_hash:
+                    self.replicas.append((i, b_hash))
+                else:
+                    self.name_matches.append((i, b_hash))
         if self.replicas:
             self.has_backup = True
+        if self.name_matches:
+            self.has_name_matches = True
 
     def remove(self):
-        """remove a file which likely has backup files."""
+        """remove a file which has backup files."""
         import os
         if self.has_backup:
             try:
@@ -104,23 +108,36 @@ class Result():
                 if not self.file.exists():
                     print(self.file.resolve(), 'has been deleted')
             except:
-                raise Exception('remove file failed')
+                raise Exception('Remove file failed')
 
 def check(directory, back_dir, hash=None):
     files = Directory(directory).files
     has_backup = []
+    has_name_matches = []
+    has_backup_and_name_matches = []
     has_no_backup = []
     for f in files:
         c = Result(f, back_dir, hash_al=hash)
-        rprint(c.file)
+        print(c.file)
+        print(f'{c.hash_al}: {c.o_hash}')
         if c.has_backup:
             has_backup.append(c)
-            rprint("[italic green]found backup files")
-            print("likely backup list:")
-            for i in c.matches:
-                rprint(f"[italic blue]{i}")
-        else:
+            rprint("[italic green bold]Found backup files")
+            print("Backup files:")
+            for i in c.replicas:
+                rprint(f'[italic green bold]{i[0]}:')
+                rprint(f'[italic green bold]{i[1]}:')
+        if c.has_name_matches:
+            has_name_matches.append(c)
+            rprint("[italic yellow]Found name-match files")
+            rprint("Name-match files:")
+            for i in c.name_matches:
+                rprint(f'[italic yellow]{i[0]}:')
+                rprint(f'[italic yellow]{i[1]}:')
+        if c.has_backup and c.has_name_matches:
+            has_backup_and_name_matches.append(c)
+        if not any([c.has_backup, c.has_name_matches]):
             has_no_backup.append(c)
-            rprint("[italic red]found no backup files")
-        print('------------')
-    return files, has_backup, has_no_backup
+            rprint("[italic red bold]Found no backup files")
+        print('------------\n')
+    return files, has_backup, has_name_matches, has_backup_and_name_matches, has_no_backup
